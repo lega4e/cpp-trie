@@ -16,11 +16,50 @@ namespace nvx
 
 
 
-template<typename T, int ALPHABET_SIZE, int OFFSET>
+template<typename Key>
+struct _TrieNodeTraits
+{
+	typedef std::string str_t;
+
+	static constexpr char const root         = '@';
+	static constexpr char const *space       = " ";
+	static constexpr char const *doublespace = "  ";
+
+	static constexpr char const *updown      = "│";
+	static constexpr char const *leftright   = "─";
+	static constexpr char const *upright     = "└";
+	static constexpr char const *uprightdown = "├";
+};
+
+template<>
+struct _TrieNodeTraits<wchar_t>
+{
+	typedef std::wstring str_t;
+	
+	static constexpr wchar_t const root         = L'@';
+	static constexpr wchar_t const *space       = L" ";
+	static constexpr wchar_t const *doublespace = L"  ";
+
+	static constexpr wchar_t const *updown      = L"│";
+	static constexpr wchar_t const *leftright   = L"─";
+	static constexpr wchar_t const *upright     = L"└";
+	static constexpr wchar_t const *uprightdown = L"├";
+};
+
+template<
+	typename T,
+	int      ALPHABET_SIZE,
+	int      OFFSET,
+	typename Key  = char,
+	Key      ESYM = '\0'
+>
 struct _TrieNode
 {
 	// types
-	typedef T value_t;
+	typedef _TrieNodeTraits<Key>    traits_t;
+	typedef T                        value_t;
+	typedef Key                      key_t;
+	typedef typename traits_t::str_t str_t;
 
 
 
@@ -40,10 +79,10 @@ struct _TrieNode
 	}
 
 
-	// mthods
-	value_t *get(char const *key)
+	// methods
+	value_t *get(key_t const *key)
 	{
-		if (*key == '\0')
+		if (*key == ESYM)
 			return store ? &value : nullptr;
 
 		if (!chs[*key - OFFSET])
@@ -52,9 +91,9 @@ struct _TrieNode
 		return chs[*key - OFFSET]->get(key+1);
 	}
 
-	bool insert(char const *key, value_t const &val)
+	bool insert(key_t const *key, value_t const &val)
 	{
-		if (*key == '\0')
+		if (*key == ESYM)
 		{
 			bool res = !store;
 			store = true;
@@ -68,9 +107,9 @@ struct _TrieNode
 		return chs[*key - OFFSET]->insert(key+1, val);
 	}
 
-	bool erase(char const *key, bool *eraseme = nullptr)
+	bool erase(key_t const *key, bool *eraseme = nullptr)
 	{
-		if (*key == '\0')
+		if (*key == ESYM)
 		{
 			if (!store)
 				return false;
@@ -106,14 +145,18 @@ struct _TrieNode
 	template<class Ostream>
 	Ostream &print(
 		Ostream &os, 
-		std::string const &tabme = "",
-		std::string const &taboth = "",
-		char key = '\0'
+		str_t const &tabme = str_t(),
+		str_t const &taboth = str_t(),
+		key_t key = ESYM
 	) const
 	{
-		os << tabme << (key ? key : '@');
+		if (key)
+			os << tabme << key;
+		else
+			os << tabme << traits_t::root;
+
 		if (store)
-			os << " " << value;
+			os << traits_t::space << value;
 
 		auto last = *(std::find_if(
 			std::reverse_iterator(chs+ALPHABET_SIZE),
@@ -130,8 +173,8 @@ struct _TrieNode
 			{
 				chs[i]->print(
 					os << '\n',
-					taboth + uprightdown + leftright + " ",
-					taboth + updown + "  ",
+					taboth + traits_t::uprightdown + traits_t::leftright + traits_t::space,
+					taboth + traits_t::updown + traits_t::doublespace,
 					i + OFFSET
 				);
 			}
@@ -139,8 +182,9 @@ struct _TrieNode
 			{
 				chs[i]->print(
 					os << '\n',
-					taboth + upright + leftright + " ",
-					taboth + "   ", i + OFFSET
+					taboth + traits_t::upright + traits_t::leftright + traits_t::space,
+					taboth + traits_t::doublespace,
+					i + OFFSET
 				);
 			}
 		}
@@ -156,10 +200,6 @@ struct _TrieNode
 
 
 	// static
-	static constexpr char const *updown      = "│";
-	static constexpr char const *leftright   = "─";
-	static constexpr char const *upright     = "└";
-	static constexpr char const *uprightdown = "├";
 
 private:
 	bool _check_eraseme()
@@ -178,8 +218,8 @@ private:
 
 };
 
-template<class Ostream, typename T, int N, int M>
-inline Ostream &operator<<( Ostream &os, _TrieNode<T, N, M> const &toprint )
+template<class Ostream, typename T, int N, int M, typename K, K E>
+inline Ostream &operator<<( Ostream &os, _TrieNode<T, N, M, K, E> const &toprint )
 {
 	toprint.print(os);
 	return os;
@@ -189,15 +229,24 @@ inline Ostream &operator<<( Ostream &os, _TrieNode<T, N, M> const &toprint )
 
 
 
-template<typename T, int ALPHABET_SIZE, int OFFSET>
+template<
+	typename T,
+	int ALPHABET_SIZE,
+	int OFFSET,
+	typename Key = char,
+	Key ESYM = '\0'
+>
 class Trie
 {
 public:
-	typedef T value_t;
+	typedef _TrieNodeTraits<Key>     traits_t;
+	typedef T                        value_t;
+	typedef Key                      key_t;
+	typedef typename traits_t::str_t str_t;
 
 	Trie()
 	{
-		root = new _TrieNode<T, ALPHABET_SIZE, OFFSET>;
+		root = new _TrieNode<T, ALPHABET_SIZE, OFFSET, key_t, ESYM>;
 	}
 
 	~Trie()
@@ -221,7 +270,7 @@ public:
 	 * Получение элемента по ключу; возвращает nullptr,
 	 * если значение не найдено
 	 */
-	value_t *get(char const *key) const
+	value_t *get(key_t const *key) const
 	{
 		return root->get(key);
 	}
@@ -231,7 +280,7 @@ public:
 	 * было, и ложь, если был (но значение всё равно
 	 * перезаписывается)
 	 */
-	bool insert(char const *key, value_t const &newval)
+	bool insert(key_t const *key, value_t const &newval)
 	{
 		if (root->insert(key, newval))
 		{
@@ -246,7 +295,7 @@ public:
 	 * Удаление значение по ключу. Возвращает истину, если
 	 * элементы был удалён, и ложь — если отсутствовал
 	 */
-	bool erase(char const *key)
+	bool erase(key_t const *key)
 	{
 		return root->erase(key);
 	}
@@ -255,7 +304,7 @@ public:
 	 * Вывод дерева в красивом виде на поток
 	 */
 	template<class Ostream>
-	Ostream &print(Ostream &os, std::string const &tab = "") const
+	Ostream &print(Ostream &os, str_t const &tab = str_t()) const
 	{
 		root->print(os, tab);
 		return os;
@@ -265,14 +314,14 @@ public:
 
 private:
 	int count = 0;
-	_TrieNode<T, ALPHABET_SIZE, OFFSET> *root;
+	_TrieNode<T, ALPHABET_SIZE, OFFSET, Key, ESYM> *root;
 
 	friend struct _TriePrivateAccess;
 
 };
 
-template<class Ostream, typename T, int N, int M>
-inline Ostream &operator<<( Ostream &os, Trie<T, N, M> const &toprint )
+template<class Ostream, typename T, int N, int M, typename K, K E>
+inline Ostream &operator<<( Ostream &os, Trie<T, N, M, K, E> const &toprint )
 {
 	toprint.print(os);
 	return os;
@@ -284,14 +333,14 @@ inline Ostream &operator<<( Ostream &os, Trie<T, N, M> const &toprint )
 
 struct _TriePrivateAccess
 {
-	template<typename T, int N, int M>
-	static int &count(Trie<T, N, M> &t)
+	template<typename T, int N, int M, typename K, K E>
+	static int &count(Trie<T, N, M, K, E> &t)
 	{
 		return t.count;
 	}
 
-	template<typename T, int N, int M>
-	static _TrieNode<T, N, M> *&root(Trie<T, N, M> &t)
+	template<typename T, int N, int M, typename K, K E>
+	static _TrieNode<T, N, M> *&root(Trie<T, N, M, K, E> &t)
 	{
 		return t.root;
 	}

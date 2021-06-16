@@ -21,6 +21,8 @@ NVX_DRE;
 // main
 int main( int argc, char *argv[] )
 {
+	setlocale(LC_ALL, "");
+
 	auto tests = {
 		make_pair(&insert_get_test,  "insert_get_test"),
 		make_pair(&trie_random_test, "trie_random_test"),
