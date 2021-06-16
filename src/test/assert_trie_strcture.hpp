@@ -43,7 +43,7 @@ bool assert_trie_structure(
 	auto print_trie = [&]()->void {
 		std::cerr << *root << "\n\n";
 		if (key)
-			trie.print(std::cerr, key) << "\n\n" << std::flush;
+			trie.print(std::cerr, "", "", key) << "\n\n" << std::flush;
 	};
 
 	if (!root)

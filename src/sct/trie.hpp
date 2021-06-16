@@ -68,11 +68,14 @@ struct _TrieNode
 		return chs[*key - OFFSET]->insert(key+1, val);
 	}
 
+	bool erase(char const *key);
+
 	template<class Ostream>
 	Ostream &print(
-		Ostream &os, char key = '\0',
+		Ostream &os, 
 		std::string const &tabme = "",
-		std::string const &taboth = ""
+		std::string const &taboth = "",
+		char key = '\0'
 	) const
 	{
 		os << tabme << (key ? key : '@');
@@ -93,17 +96,18 @@ struct _TrieNode
 			if (chs[i] != last)
 			{
 				chs[i]->print(
-					os << '\n', i + OFFSET,
+					os << '\n',
 					taboth + uprightdown + leftright + " ",
-					taboth + updown + "  "
+					taboth + updown + "  ",
+					i + OFFSET
 				);
 			}
 			else
 			{
 				chs[i]->print(
-					os << '\n', i + OFFSET,
+					os << '\n',
 					taboth + upright + leftright + " ",
-					taboth + "   "
+					taboth + "   ", i + OFFSET
 				);
 			}
 		}
@@ -168,7 +172,7 @@ public:
 	 * Получение элемента по ключу; возвращает nullptr,
 	 * если значение не найдено
 	 */
-	value_t *get(char const *key)
+	value_t *get(char const *key) const
 	{
 		return root->get(key);
 	}
@@ -193,15 +197,19 @@ public:
 	 * Удаление значение по ключу. Возвращает истину, если
 	 * элементы был удалён, и ложь — если отсутствовал
 	 */
-	bool erase(char const *key);
+	bool erase(char const *key)
+	{
+		return false;
+	}
 
 	/*
 	 * Вывод дерева в красивом виде на поток
 	 */
 	template<class Ostream>
-	Ostream &print(Ostream &os, std::string const &tab) const
+	Ostream &print(Ostream &os, std::string const &tab = "") const
 	{
-		
+		root->print(os, tab);
+		return os;
 	}
 
 

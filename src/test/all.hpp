@@ -6,6 +6,7 @@
 
 
 bool insert_get_test();
+bool trie_random_test();
 
 
 

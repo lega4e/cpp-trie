@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <nvx/random.hpp>
+
 #include "test/all.hpp"
 
 
@@ -9,11 +11,19 @@ using namespace std;
 
 
 
+// objs
+NVX_DRE;
+
+
+
+
+
 // main
 int main( int argc, char *argv[] )
 {
 	auto tests = {
-		make_pair(&insert_get_test, "insert_get_test"),
+		make_pair(&insert_get_test,  "insert_get_test"),
+		make_pair(&trie_random_test, "trie_random_test"),
 	};
 
 	int success = 0;
