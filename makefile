@@ -10,7 +10,7 @@ libs    :=
 build: main
 
 run: main
-	main 
+	main 30
 
 
 re: clean build

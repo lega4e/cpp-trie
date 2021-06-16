@@ -68,7 +68,40 @@ struct _TrieNode
 		return chs[*key - OFFSET]->insert(key+1, val);
 	}
 
-	bool erase(char const *key);
+	bool erase(char const *key, bool *eraseme = nullptr)
+	{
+		if (*key == '\0')
+		{
+			if (!store)
+				return false;
+			store = false;
+
+			if (eraseme)
+				*eraseme = _check_eraseme();
+
+			return true;
+		}
+
+		auto ch = chs[*key - OFFSET];
+		if (ch == nullptr)
+			return false;
+
+
+		bool erasech = false;
+		if (!ch->erase(key+1, &erasech))
+			return false;
+
+		if (erasech)
+		{
+			delete ch;
+			chs[*key - OFFSET] = nullptr;
+		}
+
+		if (eraseme)
+			*eraseme = _check_eraseme();
+
+		return true;
+	}
 
 	template<class Ostream>
 	Ostream &print(
@@ -127,6 +160,22 @@ struct _TrieNode
 	static constexpr char const *leftright   = "─";
 	static constexpr char const *upright     = "└";
 	static constexpr char const *uprightdown = "├";
+
+private:
+	bool _check_eraseme()
+	{
+		if (store)
+			return false;
+
+		for (auto ch : chs)
+		{
+			if (ch != nullptr)
+				return false;
+		}
+
+		return true;
+	}
+
 };
 
 template<class Ostream, typename T, int N, int M>
@@ -199,7 +248,7 @@ public:
 	 */
 	bool erase(char const *key)
 	{
-		return false;
+		return root->erase(key);
 	}
 
 	/*

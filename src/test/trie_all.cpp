@@ -32,19 +32,22 @@ bool trie_random_test()
 
 	TrieOperation<int> op;
 	Trie<int, 26, 'a'> trie;
-	for (int i = 0; i < 1000; ++i)
+	for (int i = 0; i < 10000; ++i)
 	{
-		op = trie_random_operation(vals.begin(), vals.end(), 0, 100);
+		op = trie_random_operation(vals.begin(), vals.end(), 1, 10, 0, 100);
 
 		try
 		{
 			switch (op.type)
 			{
 			case '+':
+			  {
 				trie.insert(op.key.c_str(), op.val);
-				vals.insert({ op.key, op.val });
+				auto res = vals.insert({op.key, op.val});
+				if (!res.second)
+					res.first->second = op.val;
 				break;
-
+			  }
 			case '-':
 				assert_eq(
 					trie.erase(op.key.c_str()),
@@ -67,8 +70,17 @@ bool trie_random_test()
 			  }
 			}
 
+			/*
+			 * cerr << op.type << " " << op.key << " " << op.val << endl;
+			 * print(cerr << "map: ", vals.begin(), vals.end()) << '\n';
+			 * cerr << trie << endl << endl;
+			 */
+
 			if (!is_equal(trie, vals))
+			{
+				fprintf(stderr, "after %c\n", op.type);
 				throw "map != trie";
+			}
 		}
 		catch(char const *err)
 		{

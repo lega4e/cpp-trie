@@ -46,6 +46,8 @@ template<typename Iterator, typename...Args>
 auto trie_random_operation(
 	Iterator b,
 	Iterator e,
+	int keylenmin = 1,
+	int keylenmax = 5,
 	Args...args
 )
 {
@@ -60,21 +62,21 @@ auto trie_random_operation(
 	{
 		op.type = '+'; // insert
 		op.val = nvx::random_value<value_t>(args...);
-		op.key = random_key(1, 5);
+		op.key = random_key(keylenmin, keylenmax);
 	}
 	else if (dis(dre) < 0.5)
 	{
 		op.type = '='; // get 
 		op.key = dis(dre) < 0.8 ?
 			choice_it(b, e)->first :
-			random_key(1, 5);
+			random_key(keylenmin, keylenmax);
 	}
 	else
 	{
 		op.type = '-'; // erase
 		op.key = dis(dre) < 0.8 ?
 			choice_it(b, e)->first :
-			random_key(1, 5);
+			random_key(keylenmin, keylenmax);
 	}
 
 	return op;
