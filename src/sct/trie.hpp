@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <functional>
+#include <iterator>
 
 
 
@@ -18,8 +19,12 @@ namespace nvx
 template<typename T, int ALPHABET_SIZE, int OFFSET>
 struct _TrieNode
 {
+	// types
 	typedef T value_t;
 
+
+
+	// (de)constructor
 	_TrieNode(): store(false), value(value_t())
 	{
 		memset(chs, 0, sizeof(_TrieNode*)*ALPHABET_SIZE);
@@ -35,6 +40,7 @@ struct _TrieNode
 	}
 
 
+	// mthods
 	value_t *get(char const *key)
 	{
 		if (*key == '\0')
@@ -45,7 +51,6 @@ struct _TrieNode
 
 		return chs[*key - OFFSET]->get(key+1);
 	}
-
 
 	bool insert(char const *key, value_t const &val)
 	{
@@ -63,11 +68,69 @@ struct _TrieNode
 		return chs[*key - OFFSET]->insert(key+1, val);
 	}
 
+	template<class Ostream>
+	Ostream &print(
+		Ostream &os, char key = '\0',
+		std::string const &tabme = "",
+		std::string const &taboth = ""
+	) const
+	{
+		os << tabme << (key ? key : '@');
+		if (store)
+			os << " " << value;
 
+		auto last = *(std::find_if(
+			std::reverse_iterator(chs+ALPHABET_SIZE),
+			std::reverse_iterator(chs),
+			[](_TrieNode *t) { return (bool)t; }
+		).base()-1);
+
+		for (int i = 0; i < ALPHABET_SIZE; ++i)
+		{
+			if (!chs[i])
+				continue;
+
+			if (chs[i] != last)
+			{
+				chs[i]->print(
+					os << '\n', i + OFFSET,
+					taboth + uprightdown + leftright + " ",
+					taboth + updown + "  "
+				);
+			}
+			else
+			{
+				chs[i]->print(
+					os << '\n', i + OFFSET,
+					taboth + upright + leftright + " ",
+					taboth + "   "
+				);
+			}
+		}
+
+		return os;
+	}
+
+
+	// members
 	bool store;
 	value_t value;
 	_TrieNode *chs[ALPHABET_SIZE];
+
+
+	// static
+	static constexpr char const *updown      = "│";
+	static constexpr char const *leftright   = "─";
+	static constexpr char const *upright     = "└";
+	static constexpr char const *uprightdown = "├";
 };
+
+template<class Ostream, typename T, int N, int M>
+inline Ostream &operator<<( Ostream &os, _TrieNode<T, N, M> const &toprint )
+{
+	toprint.print(os);
+	return os;
+}
 
 
 

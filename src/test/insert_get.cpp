@@ -1,6 +1,7 @@
+#include <assert.hpp>
 #include <trie.hpp>
 
-#include <assert.hpp>
+#include "assert_trie_strcture.hpp"
 
 using namespace nvx;
 
@@ -29,6 +30,27 @@ bool insert_get_test()
 		assert_eq(*trie.get("tras"), 3);
 		assert_eq(*trie.get("xas"),  4);
 		assert_eq(*trie.get("xts"),  5);
+
+		assert_trie_structure(
+			*_TriePrivateAccess::root(trie),
+			SAssert<int> { nullptr, {
+				{ 't', new SAssert<int> { nullptr, {
+					{ 'r', new SAssert<int> { new int(6), {
+						{ 'a', new SAssert<int> { new int(1), { {
+							{ 's', new SAssert<int> { new int(3) } }
+						} } } }
+					} } },
+				} } },
+				{ 'x', new SAssert<int> { nullptr, {
+					{ 'a', new SAssert<int> { nullptr, {
+						{ 's', new SAssert<int> { new int(4) } }
+					} } },
+					{ 't', new SAssert<int> { nullptr, {
+						{ 's', new SAssert<int> { new int(5) } }
+					} } }
+				} } }
+			} }
+		);
 	}
 	catch(char const *err)
 	{
