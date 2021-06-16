@@ -43,7 +43,7 @@ bool _trie_random_test_core(
 
 	for (int i = 0; i < 10000; ++i)
 	{
-		op = trie_random_operation(vals.begin(), vals.end(), 1, 10, 0, 100);
+		op = trie_random_operation(vals.begin(), vals.end(), 1, 20, 0, 100);
 
 		try
 		{

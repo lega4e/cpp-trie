@@ -14,7 +14,7 @@ bool trie_random_test()
 
 bool ctrie_random_test()
 {
-	return _trie_random_test_core<nvx::CTrie<int, 26, 'a'>, int>(true, false, false);
+	return _trie_random_test_core<nvx::CTrie<int>, int>(true, false, false);
 }
 
 

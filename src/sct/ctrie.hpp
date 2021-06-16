@@ -288,57 +288,43 @@ struct _CTrieNode
 		return false;
 	}
 
-/*
- *     template<class Ostream>
- *     Ostream &print(
- *         Ostream &os,
- *         str_t const &tabme = str_t(),
- *         str_t const &taboth = str_t(),
- *         key_t key = ESYM
- *     ) const
- *     {
- *         if (key)
- *             os << tabme << key;
- *         else
- *             os << tabme << traits_t::root;
- *
- *         if (store)
- *             os << traits_t::space << value;
- *
- *         auto last = *(std::find_if(
- *             std::reverse_iterator(chs+ALPHABET_SIZE),
- *             std::reverse_iterator(chs),
- *             [](_CTrieNode *t) { return (bool)t; }
- *         ).base()-1);
- *
- *         for (int i = 0; i < ALPHABET_SIZE; ++i)
- *         {
- *             if (!chs[i])
- *                 continue;
- *
- *             if (chs[i] != last)
- *             {
- *                 chs[i]->print(
- *                     os << '\n',
- *                     taboth + traits_t::uprightdown + traits_t::leftright + traits_t::space,
- *                     taboth + traits_t::updown + traits_t::doublespace,
- *                     i + OFFSET
- *                 );
- *             }
- *             else
- *             {
- *                 chs[i]->print(
- *                     os << '\n',
- *                     taboth + traits_t::upright + traits_t::leftright + traits_t::space,
- *                     taboth + traits_t::doublespace,
- *                     i + OFFSET
- *                 );
- *             }
- *         }
- *
- *         return os;
- *     }
- */
+	template<class Ostream>
+	Ostream &print(
+		Ostream &os,
+		str_t const &tabme  = str_t(),
+		str_t const &taboth = str_t()
+	) const
+	{
+		if (*key == ESYM)
+			os << tabme << traits_t::root;
+		else
+			os << tabme << key;
+
+		if (store)
+			os << traits_t::space << val;
+
+		for (node_t *ch = chs; ch; ch = ch->next)
+		{
+			if (ch->next)
+			{
+				ch->print(
+					os << '\n',
+					taboth + traits_t::uprightdown + traits_t::leftright + traits_t::space,
+					taboth + traits_t::updown + traits_t::doublespace
+				);
+			}
+			else
+			{
+				ch->print(
+					os << '\n',
+					taboth + traits_t::upright + traits_t::leftright + traits_t::space,
+					taboth + traits_t::doublespace
+				);
+			}
+		}
+
+		return os;
+	}
 
 
 	// members
@@ -356,8 +342,8 @@ private:
 
 };
 
-template<class Ostream, typename T, int N, int M, typename K, K E>
-inline Ostream &operator<<( Ostream &os, _CTrieNode<T, N, M, K, E> const &toprint )
+template<class Ostream, typename T, typename K, K E>
+inline Ostream &operator<<( Ostream &os, _CTrieNode<T, K, E> const &toprint )
 {
 	toprint.print(os);
 	return os;
@@ -383,6 +369,8 @@ public:
 	CTrie()
 	{
 		root = new _CTrieNode<T, key_t, ESYM>;
+		root->key = new char[1];
+		root->key[0] = ESYM;
 	}
 
 	~CTrie()
@@ -462,10 +450,10 @@ private:
 
 };
 
-template<class Ostream, typename T, int N, int M, typename K, K E>
-inline Ostream &operator<<( Ostream &os, CTrie<T, N, M, K, E> const &toprint )
+template<class Ostream, typename T, typename K, K E>
+inline Ostream &operator<<( Ostream &os, CTrie<T, K, E> const &toprint )
 {
-	// toprint.print(os);
+	toprint.print(os);
 	return os;
 }
 
@@ -475,14 +463,14 @@ inline Ostream &operator<<( Ostream &os, CTrie<T, N, M, K, E> const &toprint )
 
 struct _CTriePrivateAccess
 {
-	template<typename T, int N, int M, typename K, K E>
-	static int &count(CTrie<T, N, M, K, E> &t)
+	template<typename T, typename K, K E>
+	static int &count(CTrie<T, K, E> &t)
 	{
 		return t.count;
 	}
 
-	template<typename T, int N, int M, typename K, K E>
-	static _CTrieNode<T, N, M> *&root(CTrie<T, N, M, K, E> &t)
+	template<typename T, typename K, K E>
+	static _CTrieNode<T, K, E> *&root(CTrie<T, K, E> &t)
 	{
 		return t.root;
 	}
