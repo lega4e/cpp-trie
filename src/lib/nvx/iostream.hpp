@@ -127,11 +127,11 @@ Ostream &print(
  * {
  *         if(!n)
  *                 return os;
- * 
+ *
  *         os << a[0];
  *         for(auto *b = a+1, *e = a+n; b != e; ++b)
  *                 os << term << *b;
- * 
+ *
  *         return os;
  * }
  */

@@ -1,5 +1,5 @@
-#ifndef LIS_TRIE_HPP
-#define LIS_TRIE_HPP
+#ifndef NVX_TRIE_HPP_74040375
+#define NVX_TRIE_HPP_74040375
 
 #include <cstring>
 #include <functional>
@@ -35,7 +35,7 @@ template<>
 struct _TrieNodeTraits<wchar_t>
 {
 	typedef std::wstring str_t;
-	
+
 	static constexpr wchar_t const root         = L'@';
 	static constexpr wchar_t const *space       = L" ";
 	static constexpr wchar_t const *doublespace = L"  ";
@@ -144,7 +144,7 @@ struct _TrieNode
 
 	template<class Ostream>
 	Ostream &print(
-		Ostream &os, 
+		Ostream &os,
 		str_t const &tabme = str_t(),
 		str_t const &taboth = str_t(),
 		key_t key = ESYM
@@ -199,8 +199,6 @@ struct _TrieNode
 	_TrieNode *chs[ALPHABET_SIZE];
 
 
-	// static
-
 private:
 	bool _check_eraseme()
 	{
@@ -252,7 +250,7 @@ public:
 	~Trie()
 	{
 		delete root;
-	} 
+	}
 
 
 
@@ -297,7 +295,13 @@ public:
 	 */
 	bool erase(key_t const *key)
 	{
-		return root->erase(key);
+		if (root->erase(key))
+		{
+			--count;
+			return true;
+		}
+
+		return false;
 	}
 
 	/*

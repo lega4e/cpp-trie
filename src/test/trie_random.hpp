@@ -66,7 +66,7 @@ auto trie_random_operation(
 	}
 	else if (dis(dre) < 0.5)
 	{
-		op.type = '='; // get 
+		op.type = '='; // get
 		op.key = dis(dre) < 0.8 ?
 			choice_it(b, e)->first :
 			random_key(keylenmin, keylenmax);

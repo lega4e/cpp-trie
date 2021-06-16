@@ -7,6 +7,7 @@
 
 bool insert_get_test();
 bool trie_random_test();
+bool ctrie_random_test();
 
 
 

@@ -69,7 +69,7 @@ namespace nvx
 
 
 	/*
-	 * Pointers	
+	 * Pointers
 	 */
 	typedef std::shared_ptr<byte>    byte_p;
 	typedef std::shared_ptr<ubyte>   ubyte_p;

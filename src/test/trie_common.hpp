@@ -1,20 +1,22 @@
-#include <trie.hpp>
+#ifndef TRIE_COMMON
+#define TRIE_COMMON
+
+#include <map>
 
 #include <assert.hpp>
 
 #include "trie_random.hpp"
 
 
-using namespace nvx;
-using namespace std;
 
 
 
-
-
-template<typename T, int N, int M>
-bool is_equal(Trie<T, N, M> const &trie, std::map<string, T> const &vals)
+template<typename Trie, typename T>
+bool is_equal(Trie const &trie, std::map<std::string, T> const &vals)
 {
+	if (trie.size() != (int)vals.size())
+		return false;
+
 	T *val;
 	for (auto b = vals.begin(), e = vals.end(); b != e; ++b)
 	{
@@ -26,12 +28,19 @@ bool is_equal(Trie<T, N, M> const &trie, std::map<string, T> const &vals)
 	return true;
 }
 
-bool trie_random_test()
+template<typename Trie, typename T>
+bool _trie_random_test_core(
+	bool ins = true,
+	bool era = true,
+	bool get = true
+)
 {
-	std::map<string, int> vals;
+	std::map<std::string, T> vals;
 
-	TrieOperation<int> op;
-	Trie<int, 26, 'a'> trie;
+	TrieOperation<T> op;
+	Trie trie;
+	T *pval;
+
 	for (int i = 0; i < 10000; ++i)
 	{
 		op = trie_random_operation(vals.begin(), vals.end(), 1, 10, 0, 100);
@@ -42,6 +51,9 @@ bool trie_random_test()
 			{
 			case '+':
 			  {
+				if (!ins)
+					continue;
+
 				trie.insert(op.key.c_str(), op.val);
 				auto res = vals.insert({op.key, op.val});
 				if (!res.second)
@@ -49,7 +61,10 @@ bool trie_random_test()
 				break;
 			  }
 			case '-':
-				assert_eq(
+				if (!era)
+					continue;
+
+				nvx::assert_eq(
 					trie.erase(op.key.c_str()),
 					(bool)vals.erase(op.key),
 					"trie.erase != vals.erase"
@@ -57,23 +72,27 @@ bool trie_random_test()
 				break;
 
 			case '=':
+				if (!get)
+					continue;
+
 			  {
-				int *val = trie.get(op.key.c_str());
+				pval = trie.get(op.key.c_str());
 				auto it = vals.find(op.key);
 
-				if ((bool)val != (it != vals.end()))
+				if ((bool)pval != (it != vals.end()))
 					throw "trie.isfind() != vals.isfind()";
 
-				if (val)
-					assert_eq(*val, it->second, "trie.find() != vals.find()");
+				if (pval)
+					nvx::assert_eq(*pval, it->second, "trie.find() != vals.find()");
+
 				break;
 			  }
 			}
 
 			/*
-			 * cerr << op.type << " " << op.key << " " << op.val << endl;
-			 * print(cerr << "map: ", vals.begin(), vals.end()) << '\n';
-			 * cerr << trie << endl << endl;
+			 * std::cerr << op.type << " " << op.key << " " << op.val << std::endl;
+			 * print(std::cerr << "map: ", vals.begin(), vals.end()) << '\n';
+			 * std::cerr << trie << std::endl << std::endl;
 			 */
 
 			if (!is_equal(trie, vals))
@@ -85,17 +104,18 @@ bool trie_random_test()
 		catch(char const *err)
 		{
 			fprintf(stderr, "%s\n", err);
-			print(cerr << "map: ", vals.begin(), vals.end()) << '\n';
-			cerr << trie << endl;
+			nvx::print(std::cerr << "map: ", vals.begin(), vals.end()) << '\n';
+			std::cerr << trie << std::endl;
 			return false;
 		}
 	}
 
 	return true;
+
 }
 
 
 
 
 
-// END
+#endif
