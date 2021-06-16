@@ -45,6 +45,21 @@ int cmp(Char const *lhs, Char const *rhs, int *c = nullptr)
 	return *lhs == '\0' ? -2 : 2;
 }
 
+template<typename Char>
+void addto(Char **dest, Char const *val, Char esym)
+{
+	int dlen    = strlen(*dest);
+	int newlen  = dlen + strlen(val);
+	Char *tmp   = new Char[newlen+1];
+	tmp[newlen] = esym;
+	memcpy(tmp, *dest, dlen * sizeof(Char));
+	memcpy(tmp+dlen, val, (newlen-dlen) * sizeof(Char));
+
+	delete *dest;
+	*dest = tmp;
+	return;
+}
+
 
 
 template<typename Key>
@@ -101,8 +116,21 @@ struct _CTrieNode
 	~_CTrieNode()
 	{
 		if (key)  delete[] key;
-		if (chs)  delete   chs;
-		if (next) delete   next;
+	}
+
+	void free()
+	{
+		if (chs)
+		{
+			chs->free();
+			delete chs;
+		}
+
+		if (next)
+		{
+			next->free();
+			delete next;
+		}
 	}
 
 
@@ -283,9 +311,68 @@ struct _CTrieNode
 		}
 	}
 
-	bool erase(key_t const *key, bool *eraseme = nullptr)
+	bool erase(key_t const *akey)
 	{
+		int len;
+		int cmpres;
+
+		for(node_t *ch = chs, *prev = nullptr; ch; prev = ch, ch = ch->next)
+		{
+			cmpres = cmp(akey, ch->key, &len);
+
+			if (cmpres == -2 || cmpres == -1 || (cmpres == 1 && len))
+				return false;
+
+			if (cmpres == 2)
+				return ch->erase(akey + len);
+
+			if (!cmpres)
+			{
+				if (!ch->chs)
+				{
+					prev ? prev->next = ch->next : chs = ch->next;
+					delete ch;
+					if (*key != ESYM && chs && !chs->next && !store)
+					{
+						addto(&key, chs->key, ESYM);
+						if (chs->store)
+							val = std::move(chs->val), store = true;
+						node_t *tmp = chs;
+						chs = tmp->chs;
+						delete tmp;
+					}
+
+					return true;
+				}
+
+				if (!ch->chs->next)
+				{
+					int chkeylen      = strlen(ch->key);
+					int tmpkeylen     = chkeylen + strlen(ch->chs->key);
+					key_t *tmpkey     = new key_t[tmpkeylen+1];
+					tmpkey[tmpkeylen] = ESYM;
+					memcpy(tmpkey, ch->key, chkeylen * sizeof(key_t));
+					memcpy(tmpkey+chkeylen, ch->chs->key, (tmpkeylen-chkeylen) * sizeof(key_t));
+
+					prev ? prev->next = ch->chs : chs = ch->chs;
+					ch->chs->next     = ch->next;
+					delete ch->chs->key;
+					ch->chs->key      = tmpkey;
+					delete ch;
+
+					return true;
+				}
+
+				if (!ch->store)
+					return false;
+
+				ch->store = false;
+				return true;
+			}
+		}
+
 		return false;
+
 	}
 
 	template<class Ostream>
@@ -375,6 +462,7 @@ public:
 
 	~CTrie()
 	{
+		root->free();
 		delete root;
 	}
 

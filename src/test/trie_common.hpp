@@ -91,7 +91,7 @@ bool _trie_random_test_core(
 
 			/*
 			 * std::cerr << op.type << " " << op.key << " " << op.val << std::endl;
-			 * print(std::cerr << "map: ", vals.begin(), vals.end()) << '\n';
+			 * nvx::print(std::cerr << "map: ", vals.begin(), vals.end()) << '\n';
 			 * std::cerr << trie << std::endl << std::endl;
 			 */
 
