@@ -19,7 +19,7 @@ rerun: clean run
 
 
 mainsrc_dirs    := src/test src
-include_dirs    := src/sct src/tmpls
+include_dirs    := src/sct src/tmpls src/lib
 search_wildcard := $(wildcard $(addsuffix /*.cpp,$(mainsrc_dirs)))
 mainobj_files   := $(patsubst %.cpp,%.o,$(search_wildcard))
 mainobj_files   := $(notdir $(mainobj_files))
